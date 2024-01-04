@@ -1,4 +1,4 @@
-package account.entities;
+package account.entities.responseentities;
 
 
 import lombok.AllArgsConstructor;

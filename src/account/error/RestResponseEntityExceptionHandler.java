@@ -43,19 +43,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ResponseBody
     public ResponseEntity<ErrorMessageTemplate> handleUnauthenticatedException(WebRequest webRequest,
                                                                                RuntimeException e) {
-
         LOGGER.info("preparing bad credentials for authentication");
 
-        String urlPath = getUrlPath(webRequest);
-
+        ErrorMessageTemplate errorMessage = setUpErrorMessageTemplate(e.getMessage(), HttpStatus.UNAUTHORIZED.value(),
+                webRequest, "Unauthorized");
      
-
-        ErrorMessageTemplate errorMessage = new ErrorMessageTemplate(
-                LocalDateTime.now(),
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
-                e.getMessage(),
-                urlPath);
 
         return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
 
@@ -67,21 +59,17 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatusCode status,
                                                                   WebRequest request) {
-        logger.info("Preparing Bad Exception");
-        logger.error(ex.getCause() + ": " + ex.getMessage());
-        String urlPath = getUrlPath(request);
-        if (ex.getMessage().contains("values accepted for Enum class: [GRANT, REMOVE]")) {
+
+        LOGGER.error("Preparing message not readable Exception");
+
+        if (ex.getMessage().contains("[GRANT, REMOVE]")) {
+            LOGGER.error("Preparing role does not exist exception");
             OperationDoesNotExistException operationDoesNotExistException = new OperationDoesNotExistException();
-            ErrorMessageTemplate errorMessage = new ErrorMessageTemplate(
-                    LocalDateTime.now(),
-                    HttpStatus.BAD_REQUEST.value(),
-                    "Bad Request",
-                    operationDoesNotExistException.getMessage(),
-                    urlPath);
+            ErrorMessageTemplate errorMessage = setUpErrorMessageTemplate(operationDoesNotExistException.getMessage(), HttpStatus.BAD_REQUEST.value(),
+                    request, "Bad Request");
 
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
-
 
         return super.handleHttpMessageNotReadable(ex, headers, status, request);
     }
@@ -98,17 +86,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     public ResponseEntity<ErrorMessageTemplate> HandlingServiceRuntimeExceptions(
             RuntimeException e, WebRequest webRequest
     ) {
-        logger.info("Preparing Bad Exception");
+        logger.info("Preparing Bad Request Exception");
         logger.error(e.getCause() + ": " + e.getMessage());
 
-        String urlPath = getUrlPath(webRequest);
-
-        ErrorMessageTemplate errorMessage = new ErrorMessageTemplate(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                e.getMessage(),
-                urlPath);
+        ErrorMessageTemplate errorMessage = setUpErrorMessageTemplate(e.getMessage(), HttpStatus.BAD_REQUEST.value(),
+                webRequest, "Bad Request");
 
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 
@@ -123,18 +105,10 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         logger.info("Preparing exception");
         logger.error(e.getCause() + ": " + e.getMessage());
 
-        String urlPath = getUrlPath(webRequest);
-
-        ErrorMessageTemplate errorMessage = new ErrorMessageTemplate(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "Not Found",
-                e.getMessage(),
-                urlPath);
+        ErrorMessageTemplate errorMessage = setUpErrorMessageTemplate(e.getMessage(), HttpStatus.NOT_FOUND.value(),
+                webRequest, "Not Found");
 
         return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-
-
     }
 
 
@@ -159,23 +133,25 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
         logger.info("Handling methodArgumentNotValid");
 
-        String urlPath = getUrlPath(request);
-
-        ErrorMessageTemplate errorMessage = new ErrorMessageTemplate(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                errorMessageString,
-                urlPath);
-
+      ErrorMessageTemplate errorMessage = setUpErrorMessageTemplate(errorMessageString,
+              HttpStatus.BAD_REQUEST.value(), request, "Bad Request");
 
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
+    private ErrorMessageTemplate setUpErrorMessageTemplate(String errorMessage, int httpValue,
+                                                           WebRequest webRequest, String error) {
+        String urlPath = getUrlPath(webRequest);
 
+        return new ErrorMessageTemplate(
+                LocalDateTime.now(),
+                httpValue,
+                error,
+                errorMessage,
+                urlPath);
+    }
 
     private String getUrlPath(WebRequest path) {
-
         logger.info("providing the url path");
         String urlPath = path.getDescription(false);
 

@@ -1,13 +1,11 @@
 package account.controllers;
 
 
-import account.entities.GrantAndRemoveEntity;
-import account.entities.User;
+import account.entities.responseentities.GrantAndRemoveEntity;
 import account.entities.responseentities.UserResponse;
 import account.security.UserDetailsImpl;
 import account.services.AdminService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

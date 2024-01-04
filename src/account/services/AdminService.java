@@ -1,6 +1,6 @@
 package account.services;
 
-import account.entities.GrantAndRemoveEntity;
+import account.entities.responseentities.GrantAndRemoveEntity;
 import account.entities.Role;
 import account.entities.User;
 import account.entities.responseentities.UserResponse;
