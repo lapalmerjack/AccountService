@@ -60,7 +60,8 @@ public class UserService {
         Set<String> roles = new HashSet<>();
         savedUser.getRoles().forEach(role -> roles.add(role.getRole()));
 
-        return new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getLastname(), savedUser.getEmail(), roles );
+        return new UserResponse(savedUser.getId(), savedUser.getName(),
+                savedUser.getLastname(), savedUser.getEmail(), roles );
 
     }
 

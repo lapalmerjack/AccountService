@@ -3,8 +3,10 @@ package account.controllers;
 import account.entities.responseentities.UserResponse;
 import account.services.UserService;
 import account.entities.User;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -18,6 +20,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Controller
 @RequestMapping("api/auth")
@@ -36,6 +41,13 @@ public class Authentication {
 
 
         UserResponse registeredUser = userService.registerUser(user);
+
+        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequestUri();
+        builder.scheme("https");
+        builder.replaceQueryParam("someBoolean", false);
+        URI newUri = builder.build().toUri();
+
+       LOGGER.info("This is the URL: {}", newUri);
 
         return new ResponseEntity<>(registeredUser, HttpStatusCode.valueOf(200));
     }
@@ -70,6 +82,11 @@ public class Authentication {
 
         return new ResponseEntity<>(map, HttpStatusCode.valueOf(200));
 
+    }
+
+    public static String makeUrl(HttpServletRequest request)
+    {
+        return request.getRequestURL().toString() + "?" + request.getQueryString();
     }
 
 }

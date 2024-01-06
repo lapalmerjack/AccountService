@@ -31,4 +31,12 @@ public class EventLogger {
     public String path;
 
 
+    public EventLogger(Long id, String date, LoggingActions action, String subject, String object, String path) {
+        this.id = id;
+        this.date = date;
+        this.action = action;
+        this.subject = subject;
+        this.object = object;
+        this.path = path;
+    }
 }
