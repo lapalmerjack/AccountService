@@ -79,4 +79,15 @@ public class LoggerEntity {
         }
     }
 
+    @Override
+    public String toString() {
+        return "LoggerEntity{" +
+                "id=" + id +
+                ", date='" + date + '\'' +
+                ", action=" + action +
+                ", subject='" + subject + '\'' +
+                ", object='" + object + '\'' +
+                ", path='" + path + '\'' +
+                '}';
+    }
 }

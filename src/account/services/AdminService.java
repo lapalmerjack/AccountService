@@ -46,6 +46,7 @@ public class AdminService {
         return setUserResponse(user.getId(), updatedUser);
     }
 
+    @Transactional
     public void deleteUserFromDataBase(String administratorEmail, String email) {
 
         if (administratorEmail.equals(email)) {
