@@ -5,6 +5,7 @@ import account.entities.responseentities.GrantAndRemoveEntity;
 import account.entities.responseentities.UserResponse;
 import account.security.UserDetailsImpl;
 import account.services.AdminService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.WebUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +34,12 @@ public class Administrator {
     @Autowired
     private final AdminService adminService;
 
+    @Autowired
+    HttpServletRequest request;
+
     public Administrator(AdminService adminService) {
         this.adminService = adminService;
+
     }
 
 
@@ -58,10 +67,12 @@ public class Administrator {
 
     @PutMapping("/user/role")
     public ResponseEntity<UserResponse> updateUserRoles(@Valid @AuthenticationPrincipal UserDetailsImpl user,
-                                            @RequestBody GrantAndRemoveEntity roleToRemoveOrGrant) {
+                                            @RequestBody GrantAndRemoveEntity roleToRemoveOrGrant) throws UnsupportedEncodingException {
 
-        LOGGER.info("Beginning updating roles");
+
         UserResponse userWithUpdatedRoles = adminService.updateUserRole(roleToRemoveOrGrant);
         return new ResponseEntity<>(userWithUpdatedRoles, HttpStatus.OK);
     }
+
+
 }

@@ -1,7 +1,5 @@
 package account.entities.enums;
 
-import account.entities.EventLogger;
-
 public enum LoggingActions {
 
 

@@ -1,5 +1,6 @@
 package account.security;
 
+import account.entities.LogInfoAggregator;
 import account.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -32,6 +33,7 @@ public class RestAuthEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
+        System.out.println("SUP");
         String noBasicAuthError = "Full authentication is required to access this resource";
         if (authException.getMessage().equals(noBasicAuthError)) {
             // Set response status code and content type

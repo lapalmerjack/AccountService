@@ -1,6 +1,9 @@
 package account.controllers;
 
+import account.entities.LogInfoAggregator;
+import account.entities.enums.LoggingActions;
 import account.entities.responseentities.UserResponse;
+import account.services.LoggerService;
 import account.services.UserService;
 import account.entities.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,10 +33,12 @@ public class Authentication {
 
     private final UserService userService;
 
+    private final LoggerService loggerService;
     private static final Logger LOGGER = LoggerFactory.getLogger(Authentication.class);
 
-    public Authentication(UserService userService) {
+    public Authentication(UserService userService, LoggerService loggerService) {
         this.userService = userService;
+        this.loggerService = loggerService;
     }
 
     @PostMapping("/signup")
@@ -42,12 +47,9 @@ public class Authentication {
 
         UserResponse registeredUser = userService.registerUser(user);
 
-        ServletUriComponentsBuilder builder = ServletUriComponentsBuilder.fromCurrentRequestUri();
-        builder.scheme("https");
-        builder.replaceQueryParam("someBoolean", false);
-        URI newUri = builder.build().toUri();
-
-       LOGGER.info("This is the URL: {}", newUri);
+        LogInfoAggregator.setUserNameForLogging("Anonymous");
+        LogInfoAggregator.setObjectInfoForLogging(user.getEmail());
+        loggerService.processLogEvents(LoggingActions.CREATE_USER);
 
         return new ResponseEntity<>(registeredUser, HttpStatusCode.valueOf(200));
     }
@@ -58,6 +60,7 @@ public class Authentication {
 
 
         User fetchedUser = userService.getEmployeeInfo(user.getUsername());
+
 
         return new ResponseEntity<>(fetchedUser, HttpStatusCode.valueOf(200));
 
@@ -79,14 +82,13 @@ public class Authentication {
         map.put("email", updatedUser.getEmail());
         map.put("status", "The password has been updated successfully" );
 
+        LogInfoAggregator.setObjectInfoForLogging(updatedUser.getEmail());
+        loggerService.processLogEvents(LoggingActions.CHANGE_PASSWORD);
+
 
         return new ResponseEntity<>(map, HttpStatusCode.valueOf(200));
 
     }
 
-    public static String makeUrl(HttpServletRequest request)
-    {
-        return request.getRequestURL().toString() + "?" + request.getQueryString();
-    }
 
 }

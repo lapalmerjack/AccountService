@@ -2,8 +2,10 @@ package account.security;
 
 import account.entities.User;
 import account.repositories.UserRepository;
+
 import java.util.Optional;
 
+import account.security.filters.ExtractRequestInfoFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -25,6 +29,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -39,7 +44,6 @@ public class SecurityConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthEntryPoint.class);
 
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         LOGGER.info("Beginning Security");
@@ -48,7 +52,7 @@ public class SecurityConfig {
                     csrf.disable();
                     csrf.ignoringRequestMatchers(PathRequest.toH2Console());
                 })
-                .headers(headers ->  headers.frameOptions().disable())
+                .headers(headers -> headers.frameOptions().disable())
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(PathRequest.toH2Console()).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/auth/signup", "/actuator/shutdown")
@@ -61,6 +65,7 @@ public class SecurityConfig {
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
+                .addFilterBefore(extractRequestInfoFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic().authenticationEntryPoint(restAuthEntryPoint);
 
         LOGGER.info("Finished security");
@@ -69,7 +74,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AccessDeniedHandler accessDeniedHandler(){
+    public AccessDeniedHandler accessDeniedHandler() {
         return new CustomAccessDeniedHandler(new ObjectMapper());
     }
 
@@ -82,6 +87,11 @@ public class SecurityConfig {
         return provider;
     }
 
+    @Bean
+    @Order()
+    public ExtractRequestInfoFilter extractRequestInfoFilter() {
+        return new ExtractRequestInfoFilter();
+    }
 
 
     @Bean
@@ -95,12 +105,8 @@ public class SecurityConfig {
                         return new UsernameNotFoundException("User not found");
                     });
             LOGGER.info("User found {}", databaseUser.getLastname());
-            return  new UserDetailsImpl(databaseUser);
+            return new UserDetailsImpl(databaseUser);
         };
-
-
-
-
 
 
     }

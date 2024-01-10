@@ -11,7 +11,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class UserResponse {
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+
     private Long id;
     private String name;
     private String lastname;

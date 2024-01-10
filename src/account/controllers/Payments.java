@@ -66,7 +66,6 @@ public class Payments {
     @PreAuthorize("hasAuthority('ROLE_ACCOUNTANT')")
     @PostMapping("/api/acct/payments")
     public ResponseEntity<Map<String, String>> registerPayment(@RequestBody List<Salary> salaryPayments) {
-        LOGGER.info("IN THE AUTO ZONE!");
         salaryPayments.forEach(s -> LOGGER.info("MY PAYMENTS " +  s.getSalary()));
 
         paymentService.registerAllSalaryPayments(salaryPayments);
