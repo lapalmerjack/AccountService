@@ -32,11 +32,7 @@ public class LoggerService {
             case LOCK_USER, UNLOCK_USER -> null;
             case DELETE_USER -> prepareDeletedUserLog(loggingAction);
 
-
         };
-
-        System.out.println("This is the ENTITY TO BE SENT" + logger);
-
     }
 
     private LoggerEntity prepareDeletedUserLog(LoggingActions loggingAction) {
@@ -64,12 +60,15 @@ public class LoggerService {
                 .path(LogInfoAggregator.getUrlPath()).build();
     }
    private LoggerEntity prepareExceptionLog(LoggingActions loggingAction) {
-        return new LoggerEntity.Builder()
+       String url = LogInfoAggregator.getUrlPath()
+               .replaceAll("/[a-zA-Z]*@.*\\.com", "");
+
+       return new LoggerEntity.Builder()
                 .date(LocalDateTime.now().toString())
                 .action(loggingAction)
                 .subject(LogInfoAggregator.getUserInfo())
-                .object(LogInfoAggregator.getObectInfo())
-                .path(LogInfoAggregator.getUrlPath()).build();
+                .object(url)
+                .path(url).build();
    }
 
    private LoggerEntity prepareCreatedUserLog(LoggingActions loggingAction) {
