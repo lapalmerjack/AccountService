@@ -1,8 +1,7 @@
 package account.security;
 
-import account.entities.LogInfoAggregator;
-import account.entities.enums.LoggingActions;
-import account.error.ErrorMessageTemplate;
+import account.logging.LogInfoAggregator;
+import account.logging.LoggingActions;
 import account.services.LoggerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
