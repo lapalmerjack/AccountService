@@ -3,18 +3,19 @@ package account.services;
 import account.entities.responseentities.GrantAndRemoveEntity;
 import account.entities.Role;
 import account.entities.User;
+import account.entities.responseentities.LockAndUnLockEntity;
 import account.entities.responseentities.UserResponse;
 import account.error.customexceptions.admin.*;
 import account.error.customexceptions.users.UserNotFoundException;
+import account.logging.LogInfoAggregator;
 import account.repositories.UserRepository;
+import com.sun.source.tree.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ public class AdminService {
 
         checkRoleName(grantAndRemoveEntity.getRole());
         User updatedUser = handleUserOperation(user, grantAndRemoveEntity);
+        System.out.println("USER TO BE SAVED " + updatedUser);
 
         userRepository.save(updatedUser);
         LOGGER.info("User has been updated and saved: " + user.getEmail());
@@ -50,6 +52,7 @@ public class AdminService {
     public void deleteUserFromDataBase(String administratorEmail, String email) {
 
         if (administratorEmail.equals(email)) {
+
             LOGGER.error("Administrator may not delete itself");
             throw new UserCantDeleteItSelfException();
         }
@@ -58,6 +61,9 @@ public class AdminService {
     }
 
     public List<UserResponse> getUsers() {
+
+        List<User> allUsers = userRepository.findAll();
+        System.out.println("GETTING ");
 
         return userRepository.findAll().stream()
                 .map(user -> new UserResponse(
@@ -73,7 +79,7 @@ public class AdminService {
     private void checkRoleName(String role) {
 
         LOGGER.info("THIS IS THE ROLE: " + role);
-        String regex = "ADMINISTRATOR|USER|ACCOUNTANT";
+        String regex = "ADMINISTRATOR|USER|ACCOUNTANT|AUDITOR";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(role);
 
@@ -82,10 +88,36 @@ public class AdminService {
         }
     }
 
+    @Transactional
+    public User updateUserLockCondition(LockAndUnLockEntity lockAndUnLockEntity) {
+
+        User user = retrieveUser(lockAndUnLockEntity.getUser());
+
+            switch (lockAndUnLockEntity.getOperations()) {
+            case LOCK -> {
+                System.out.println("Logger info " + LogInfoAggregator.getUserInfo() + user.getEmail());
+                if (LogInfoAggregator.getUserInfo().equals(user.getEmail())) {
+                    LOGGER.error("Locking admin is not allowed!");
+                    throw new CanNotLockAdministratorException();
+                }
+                user.setIsAccountNotLocked(true);
+            }
+
+            case UNLOCK ->  user.setIsAccountNotLocked(false);
+        };
+            userRepository.save(user);
+
+        return user;
+    }
+
     private User handleUserOperation(User user, GrantAndRemoveEntity grantAndRemoveEntity) {
 
         return switch(grantAndRemoveEntity.getOperation()) {
-            case GRANT -> grantNewRole(user, grantAndRemoveEntity.getRole());
+            case GRANT -> {
+              User using =  grantNewRole(user, grantAndRemoveEntity.getRole());
+                System.out.println("USING " + using.getRoles());
+                yield using;
+            }
             case REMOVE -> removeRole(user, grantAndRemoveEntity.getRole());
         };
     }
@@ -98,9 +130,13 @@ public class AdminService {
         checkIfOneUserHasUniqueRole(role);
 
         LOGGER.info("Checks passed, adding new role");
+        System.out.println("CURRENT USER ROLES" + user.getRoles());
 
-        Set<Role> updatedRoles = user.getRoles();
+        Set<Role> updatedRoles =  user.getRoles();
         updatedRoles.add(new Role("ROLE_" + role));
+
+
+        System.out.println("UPDATED RULE ORDER " + updatedRoles);
 
         return returnUpdatedUser(user, updatedRoles);
     }
@@ -163,8 +199,15 @@ public class AdminService {
     }
 
     private User returnUpdatedUser(User user, Set<Role> updatedRoles) {
-        return new User(user.getId(),user.getName(),user.getLastname(),
+
+        Set<Role> roles = new TreeSet<>(Comparator.comparing(Role::getRole));
+        roles.addAll(updatedRoles);
+        System.out.println("TREESET ROLES " + roles);
+        User newUser = new User(user.getId(), user.getName(),user.getLastname(),
                 user.getEmail(), user.getPassword(), updatedRoles);
+        System.out.println("MY FLIPPING USER: " + newUser);
+
+        return newUser;
     }
 
     private User retrieveUser(String email) {
@@ -175,7 +218,7 @@ public class AdminService {
 
 
     private UserResponse setUserResponse(Long id, User updatedUser) {
-        Set<String> updatedRoles = new HashSet<>();
+        Set<String> updatedRoles = new TreeSet<>();
         updatedUser
                 .getRoles()
                 .forEach(s -> updatedRoles.add(s.getRole()));

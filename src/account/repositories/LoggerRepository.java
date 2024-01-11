@@ -1,6 +1,6 @@
 package account.repositories;
 
-import account.entities.LoggerEntity;
+import account.logging.LoggerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -3,21 +3,19 @@ package account.security;
 import account.entities.User;
 import account.repositories.UserRepository;
 
-import java.util.Optional;
-
+import account.security.customsecurityconfig.CustomAccessDeniedHandler;
+import account.security.customsecurityconfig.UserDetailsImpl;
 import account.security.filters.ExtractRequestInfoFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -88,7 +86,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order()
+    @Order(1)
     public ExtractRequestInfoFilter extractRequestInfoFilter() {
         return new ExtractRequestInfoFilter();
     }
@@ -105,6 +103,11 @@ public class SecurityConfig {
                         return new UsernameNotFoundException("User not found");
                     });
             LOGGER.info("User found {}", databaseUser.getLastname());
+
+            if (!databaseUser.getIsAccountNotLocked()) {
+                throw new LockedException("The user is locked and admin must unlock");
+            }
+
             return new UserDetailsImpl(databaseUser);
         };
 

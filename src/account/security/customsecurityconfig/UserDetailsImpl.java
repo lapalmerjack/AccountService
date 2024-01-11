@@ -1,4 +1,4 @@
-package account.security;
+package account.security.customsecurityconfig;
 
 import account.entities.Role;
 import account.entities.User;
@@ -48,7 +48,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.getIsAccountLocked();
+        return user.getIsAccountNotLocked();
     }
 
     @Override

@@ -1,2 +1,8 @@
-package account.entities.enums;public class LockEnums {
+package account.entities.enums;
+
+
+
+public enum LockEnums {
+
+    LOCK, UNLOCK
 }

@@ -1,11 +1,9 @@
 package account.controllers;
 
 import account.entities.Salary;
-import account.entities.User;
 import account.entities.responseentities.SalariesResponse;
-import account.security.UserDetailsImpl;
+import account.security.customsecurityconfig.UserDetailsImpl;
 import account.services.PaymentService;
-import account.services.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +13,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;

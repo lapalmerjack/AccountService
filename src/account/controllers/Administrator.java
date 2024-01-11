@@ -1,16 +1,17 @@
 package account.controllers;
 
 
-import account.entities.LogInfoAggregator;
-import account.entities.enums.LoggingActions;
+import account.entities.User;
+import account.entities.responseentities.LockAndUnLockEntity;
+import account.logging.LogInfoAggregator;
+import account.logging.LoggingActions;
 import account.entities.responseentities.GrantAndRemoveEntity;
 import account.entities.responseentities.UserResponse;
-import account.security.UserDetailsImpl;
+import account.security.customsecurityconfig.UserDetailsImpl;
 import account.services.AdminService;
 import account.services.LoggerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.WebUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +59,7 @@ public class Administrator {
 
 
     @DeleteMapping("/user/{email}")
-    public ResponseEntity<?> deleteUser(@Valid @AuthenticationPrincipal UserDetailsImpl user,
+    public ResponseEntity<Map<String, String>> deleteUser(@Valid @AuthenticationPrincipal UserDetailsImpl user,
                                         @PathVariable String email) {
 
 
@@ -84,16 +82,36 @@ public class Administrator {
 
 
         UserResponse userWithUpdatedRoles = adminService.updateUserRole(roleToRemoveOrGrant);
+        System.out.println("THE CONTROLLER: " + userWithUpdatedRoles.getRoles());
 
         LogInfoAggregator.setUserNameForLogging(user.getUsername());
         LogInfoAggregator.setObjectInfoForLogging(roleToRemoveOrGrant.getUser() + " " + roleToRemoveOrGrant.getRole());
-        LoggingActions correctActionForLogger = returnLoggingAction(roleToRemoveOrGrant.getOperation());
+        LoggingActions correctActionForLogger = returnLoggingActionForRoles(roleToRemoveOrGrant.getOperation());
         loggerService.processLogEvents(correctActionForLogger);
 
         return new ResponseEntity<>(userWithUpdatedRoles, HttpStatus.OK);
     }
 
-    public LoggingActions returnLoggingAction(GrantAndRemoveEntity.Operations operation) {
+    @PutMapping("/user/access")
+    public ResponseEntity<Map<String, String>> updateUserLock(@RequestBody LockAndUnLockEntity lockAndUnLockEntity) {
+
+        User userWithUpdatedLock = adminService.updateUserLockCondition(lockAndUnLockEntity);
+        Map<String, String> configuredUser = new HashMap<>();
+        configuredUser.put("status", "User " + userWithUpdatedLock.getEmail() +
+               " " + lockAndUnLockEntity.getOperations().name().toLowerCase() + "ed!");
+        LogInfoAggregator.setObjectInfoForLogging(userWithUpdatedLock.getEmail());
+        LoggingActions correctLoggingAction = returnLoggingActionForLocks(lockAndUnLockEntity.getOperations());
+        loggerService.processLogEvents(correctLoggingAction);
+
+        return new ResponseEntity<>(configuredUser, HttpStatus.OK);
+    }
+
+    public LoggingActions returnLoggingActionForLocks(LockAndUnLockEntity.Operations operation) {
+        return operation.name().equals("LOCK") ? LoggingActions.LOCK_USER : LoggingActions.UNLOCK_USER;
+    }
+
+    public LoggingActions returnLoggingActionForRoles(GrantAndRemoveEntity.Operations operation) {
+
         return operation.name().equals("REMOVE")  ? LoggingActions.REMOVE_ROLE : LoggingActions.GRANT_ROLE;
     }
 

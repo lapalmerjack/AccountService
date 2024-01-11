@@ -13,20 +13,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
-
-
+    public static final int MAX_FAILED_ATTEMPTS = 4;
 
     @Autowired
     PasswordEncoder encoder;
-
 
     @Autowired
     UserRepository userRepository;
@@ -62,8 +60,35 @@ public class UserService {
 
         return new UserResponse(savedUser.getId(), savedUser.getName(),
                 savedUser.getLastname(), savedUser.getEmail(), roles );
-
     }
+
+    public User changePassword (UserDetails user, String newPassword) {
+        User fetchedUser = userRepository.findByEmailIgnoreCase(user.getUsername())
+                .orElseThrow(UserNotFoundException::new);
+
+        isPasswordLengthCorrect(newPassword);
+        checkForBannedPassword(newPassword);
+        isNewPasswordIdentical(fetchedUser.getPassword(), newPassword);
+
+
+        return updateUserPassword(fetchedUser, newPassword);
+    }
+    @Transactional
+    public void increaseFailedLoginAttempts(User user) {
+        int newFailedLoginAttempt = user.getLoginAttempts() + 1;
+        userRepository.updateFailedAttempts(newFailedLoginAttempt, user.getEmail());
+    }
+
+    public void resetFailedLoginAttempts(String email) {
+        userRepository.updateFailedAttempts(0, email);
+    }
+
+    public void lockUser(User user) {
+        user.setIsAccountNotLocked(false);
+
+        userRepository.save(user);
+    }
+
 
     private User addRolesForNewUser (User user) {
         User savedUser = new User(user.getName(), user.getLastname(), user.getEmail(), user.getPassword());
@@ -72,6 +97,7 @@ public class UserService {
         savedUser.addRole(new Role(roleName));
 
       return savedUser;
+
     }
 
 
@@ -82,18 +108,6 @@ public class UserService {
         databaseUser.ifPresent(u -> { throw new UserFoundException(); });
     }
 
-
-    public User changePassword (UserDetails user, String newPassword) {
-        User fetchedUser = userRepository.findByEmailIgnoreCase(user.getUsername())
-                .orElseThrow(UserNotFoundException::new);
-        System.out.println(fetchedUser.getId() + "is not null");
-        isPasswordLengthCorrect(newPassword);
-        checkForBannedPassword(newPassword);
-        isNewPasswordIdentical(fetchedUser.getPassword(), newPassword);
-
-
-        return updateUserPassword(fetchedUser, newPassword);
-    }
 
     private void checkForBannedPassword(String newPassword) {
         boolean bannedPassWord = Arrays.stream(BreachedPasswords.values())
@@ -108,7 +122,7 @@ public class UserService {
     private void isPasswordLengthCorrect(String password) {
 
         if(password.length() < 12) {
-            LOGGER.info("Throwing Minimum password exception");
+            LOGGER.error("Throwing Minimum password exception");
             throw new MinimumPasswordLengthException();
         }
 
@@ -123,17 +137,17 @@ public class UserService {
     }
 
     private User updateUserPassword(User user, String newPassword) {
+
         User updatedUser = userRepository.getReferenceById(user.getId());
         updatedUser.setPassword(encoder.encode(newPassword));
 
         userRepository.save(updatedUser);
 
         return updatedUser;
-
-
     }
 
-    public User getEmployeeInfo(String email) {
+    public User retrieveEmployee(String email) {
+
         return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(UserNotFoundException::new);
     }

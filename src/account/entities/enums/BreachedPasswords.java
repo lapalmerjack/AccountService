@@ -1,5 +1,8 @@
 package account.entities.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum BreachedPasswords {
 
     PASSWORD_FOR_JANUARY("PasswordForJanuary"),
@@ -22,7 +25,4 @@ public enum BreachedPasswords {
         this.breachedPassword = breachedPassword;
     }
 
-    public String getBreachedPassword() {
-        return breachedPassword;
-    }
 }

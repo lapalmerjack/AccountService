@@ -1,4 +1,4 @@
-package account.entities.enums;
+package account.logging;
 
 public enum LoggingActions {
 

@@ -1,4 +1,4 @@
-package account.security;
+package account.security.customsecurityconfig;
 
 import account.logging.LogInfoAggregator;
 import account.logging.LoggingActions;

@@ -1,4 +1,4 @@
-package account.entities;
+package account.logging;
 
 
 import lombok.Getter;
@@ -35,5 +35,12 @@ public class LogInfoAggregator {
 
     public static String getObectInfo() {
       return  objectInfo.get();
+    }
+
+    public static void removeThreads () {
+        userinfo.remove();
+        urlPathHolder.remove();
+        objectInfo.remove();
+
     }
 }

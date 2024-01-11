@@ -10,14 +10,13 @@ import jakarta.validation.constraints.Size;
 
 import java.util.*;
 
-import lombok.AllArgsConstructor;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.hibernate.annotations.SortNatural;
 
 
 @Getter
@@ -25,7 +24,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @ToString
 @Entity
 @Table(name = "users")
-@AllArgsConstructor
 @NoArgsConstructor
 public class User {
 
@@ -35,19 +33,28 @@ public class User {
     private Long id;
 
     @NotBlank @NotNull
-    String name;
+    private String name;
 
     @NotBlank  @NotNull
-    String lastname;
+    private String lastname;
 
     @NotBlank    @NotNull   @Email(regexp = ".+@acme.com$")
-    String email;
+    private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank @NonNull
     @Size(min = 12,
             message = "Password length must be 12 chars minimum!" )
-    String password;
+    private String password;
+
+    @Column(name = "failed_attempts")
+    @JsonIgnore
+    private Integer loginAttempts = 0;
+
+    @JsonIgnore
+    private Boolean isAccountNotLocked = true;
+
+
 
     @OneToMany(mappedBy="user", cascade = {CascadeType.ALL})
     @JsonIgnore
@@ -59,7 +66,7 @@ public class User {
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+    private Set<Role> roles;
 
 
     public User (String name, String lastname, String email, @NonNull String password) {
@@ -89,10 +96,12 @@ public class User {
     }
 
     public void addRole(Role role) {
+        System.out.println("SETTNG ROLE SORT");
        if (roles == null) {
-           roles = new HashSet<>();
+           roles = new TreeSet<>(Comparator.comparing(Role::getRole));
        }
        roles.add(role);
     }
 
     }
+

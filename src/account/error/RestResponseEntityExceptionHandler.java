@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -38,7 +39,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
 
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class,
-            AuthenticationException.class,
+            AuthenticationException.class, LockedException.class
            })
     @ResponseBody
     public ResponseEntity<ErrorMessageTemplate> handleUnauthenticatedException(WebRequest webRequest,
@@ -52,6 +53,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
 
     }
+
+
 
 
 
@@ -82,6 +85,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             UserRoleExists.class, UserCantDeleteItSelfException.class,
             RoleCombinationException.class, RoleAlreadyAssignedException.class,
             InsufficientRoleCountException.class, RoleDoesNotExistForUser.class,
+            CanNotLockAdministratorException.class
            })
     public ResponseEntity<ErrorMessageTemplate> HandlingServiceRuntimeExceptions(
             RuntimeException e, WebRequest webRequest

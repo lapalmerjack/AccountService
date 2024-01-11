@@ -16,12 +16,7 @@ import java.util.Set;
 public class DataLoader {
 
     private final RoleRepository roleRepository;
-
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DataLoader.class);
-
-
-
 
     @Autowired
     public DataLoader(RoleRepository roleRepository) throws Exception {
@@ -57,6 +52,7 @@ public class DataLoader {
         roleRepository.save(new Role("ROLE_ADMINISTRATOR"));
         roleRepository.save(new Role("ROLE_USER"));
         roleRepository.save(new Role("ROLE_ACCOUNTANT"));
+        roleRepository.save(new Role("ROLE_AUDITOR"));
         System.out.println("ROLES ADDED");
     }
 

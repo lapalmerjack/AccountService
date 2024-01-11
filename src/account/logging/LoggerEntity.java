@@ -1,18 +1,19 @@
-package account.entities;
-
-import account.entities.enums.LoggingActions;
+package account.logging;
 
 import jakarta.persistence.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.java.Log;
 
 
 @Getter
 @Setter
 @Entity
 @Table(name="events_log")
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoggerEntity {
 
     @Id
