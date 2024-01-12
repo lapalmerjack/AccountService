@@ -9,7 +9,6 @@ import account.error.customexceptions.admin.*;
 import account.error.customexceptions.users.UserNotFoundException;
 import account.logging.LogInfoAggregator;
 import account.repositories.UserRepository;
-import com.sun.source.tree.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -91,9 +90,9 @@ public class AdminService {
     @Transactional
     public User updateUserLockCondition(LockAndUnLockEntity lockAndUnLockEntity) {
 
-        User user = retrieveUser(lockAndUnLockEntity.getUser());
+        User user = retrieveUser(lockAndUnLockEntity.getUser().toLowerCase());
 
-            switch (lockAndUnLockEntity.getOperations()) {
+            switch (lockAndUnLockEntity.getOperation()) {
             case LOCK -> {
                 System.out.println("Logger info " + LogInfoAggregator.getUserInfo() + user.getEmail());
                 if (LogInfoAggregator.getUserInfo().equals(user.getEmail())) {

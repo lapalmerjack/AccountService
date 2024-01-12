@@ -39,6 +39,9 @@ public class SecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthEntryPoint.class);
 
 
@@ -105,7 +108,9 @@ public class SecurityConfig {
             LOGGER.info("User found {}", databaseUser.getLastname());
 
             if (!databaseUser.getIsAccountNotLocked()) {
-                throw new LockedException("The user is locked and admin must unlock");
+                LOGGER.error("user is locked: {}", databaseUser.getEmail());
+                LOGGER.error("user locked? : {}", databaseUser.getIsAccountNotLocked());
+                throw new LockedException("User account is locked");
             }
 
             return new UserDetailsImpl(databaseUser);

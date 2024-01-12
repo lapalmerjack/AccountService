@@ -23,6 +23,7 @@ public class ExtractRequestInfoFilter extends OncePerRequestFilter {
         String urlPath = request.getRequestURL().toString();
 
         if(urlPath.contains("api")) {
+            System.out.println("ACCESSING THREAT YO");
             LogInfoAggregator.setUrlPathForLogging(urlPath.substring(urlPath.indexOf("/api")));
         }
 

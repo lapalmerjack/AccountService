@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
-    public static final int MAX_FAILED_ATTEMPTS = 4;
+    public static final int MAX_FAILED_ATTEMPTS = 5;
 
     @Autowired
     PasswordEncoder encoder;
@@ -72,6 +72,11 @@ public class UserService {
 
 
         return updateUserPassword(fetchedUser, newPassword);
+    }
+
+    public boolean isUserInDataBase (String email) {
+        Optional<User> user = userRepository.findByEmailIgnoreCase(email);
+        return user.isPresent();
     }
     @Transactional
     public void increaseFailedLoginAttempts(User user) {

@@ -94,13 +94,13 @@ public class Administrator {
 
     @PutMapping("/user/access")
     public ResponseEntity<Map<String, String>> updateUserLock(@RequestBody LockAndUnLockEntity lockAndUnLockEntity) {
-
+        System.out.println("LOCKANDUNLOCK = " + lockAndUnLockEntity.getUser() + lockAndUnLockEntity.getOperation());
         User userWithUpdatedLock = adminService.updateUserLockCondition(lockAndUnLockEntity);
         Map<String, String> configuredUser = new HashMap<>();
         configuredUser.put("status", "User " + userWithUpdatedLock.getEmail() +
-               " " + lockAndUnLockEntity.getOperations().name().toLowerCase() + "ed!");
+               " " + lockAndUnLockEntity.getOperation().name().toLowerCase() + "ed!");
         LogInfoAggregator.setObjectInfoForLogging(userWithUpdatedLock.getEmail());
-        LoggingActions correctLoggingAction = returnLoggingActionForLocks(lockAndUnLockEntity.getOperations());
+        LoggingActions correctLoggingAction = returnLoggingActionForLocks(lockAndUnLockEntity.getOperation());
         loggerService.processLogEvents(correctLoggingAction);
 
         return new ResponseEntity<>(configuredUser, HttpStatus.OK);

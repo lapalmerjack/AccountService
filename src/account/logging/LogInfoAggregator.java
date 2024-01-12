@@ -14,6 +14,8 @@ public class LogInfoAggregator {
 
     private static final ThreadLocal<String> objectInfo = new ThreadLocal<>();
 
+
+
     public static String getUrlPath() {
         return urlPathHolder.get();
     }

@@ -8,16 +8,19 @@ import account.logging.LoggingActions;
 import account.repositories.LoggerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.LoggingEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LoggerService {
+
+    private static Optional<String> username;
+    private static Optional<String> urlPath;
 
     @Autowired
     private final LoggerRepository loggerRepository;
@@ -47,15 +50,21 @@ public class LoggerService {
         LoggerEntity logger = switch (loggingAction) {
             case CREATE_USER -> prepareCreatedUserLog(loggingAction);
             case CHANGE_PASSWORD -> prepareChangePasswordLog(loggingAction);
-            case LOGIN_FAILED, ACCESS_DENIED, BRUTE_FORCE -> prepareExceptionLog(loggingAction);
+            case LOGIN_FAILED, ACCESS_DENIED, BRUTE_FORCE -> prepareLoginFailedLog(loggingAction);
             case GRANT_ROLE, REMOVE_ROLE -> prepareRoleChangeLog(loggingAction);
-            case LOCK_USER, UNLOCK_USER -> prepareUserLockLog(loggingAction);
+            case LOCK_USER -> prepareUserLockLog(loggingAction);
+            case UNLOCK_USER -> prepareUserUnlockLog(loggingAction);
             case DELETE_USER -> prepareDeletedUserLog(loggingAction);
+
 
         };
 
+        username = Optional.of(logger.getSubject());
+        urlPath = Optional.of(logger.getPath());
+
         LOGGER.info("This is saved to logger {}", logger);
         loggerRepository.save(logger);
+        LOGGER.info("Removing threads");
         LogInfoAggregator.removeThreads();
 
 
@@ -98,14 +107,20 @@ public class LoggerService {
         return setObjectInfo;
     }
 
-    private LoggerEntity prepareExceptionLog(LoggingActions loggingAction) {
-       String url = LogInfoAggregator.getUrlPath()
-               .replaceAll("/[a-zA-Z]*@.*\\.com", "");
+    private LoggerEntity prepareLoginFailedLog(LoggingActions loggingAction) {
 
-       return new LoggerEntity.Builder()
+        String correctSubject = LogInfoAggregator.getUserInfo();
+        String url = LogInfoAggregator.getUrlPath();
+        if (loggingAction == LoggingActions.BRUTE_FORCE) {
+            System.out.println("UP IN HERE MY MAN");
+            correctSubject = username.get();
+            url = urlPath.get();
+        }
+
+        return new LoggerEntity.Builder()
                 .date(LocalDateTime.now().toString())
                 .action(loggingAction)
-                .subject(LogInfoAggregator.getUserInfo())
+                .subject(correctSubject)
                 .object(url)
                 .path(url).build();
    }
@@ -129,13 +144,21 @@ public class LoggerService {
    }
 
    private LoggerEntity prepareUserLockLog(LoggingActions loggingAction) {
-        String objectString;
+        String correctSubject = username.orElse(LogInfoAggregator.getUserInfo());
+        String objectString = "Lock user " + correctSubject;
+        String url = urlPath.orElse(LogInfoAggregator.getUrlPath());
 
-        if (loggingAction.name().equals("LOCK_USER")) {
-            objectString = "Lock user " + LogInfoAggregator.getObectInfo();
-        } else {
-            objectString = "Unlock user " + LogInfoAggregator.getObectInfo();
-        }
+
+       return new LoggerEntity.Builder()
+               .date(LocalDateTime.now().toString())
+               .action(loggingAction)
+               .subject(correctSubject)
+               .object(objectString)
+               .path(url).build();
+   }
+
+   private LoggerEntity prepareUserUnlockLog(LoggingActions loggingAction) {
+    String objectString = "Unlock user " + LogInfoAggregator.getObectInfo();
 
        return new LoggerEntity.Builder()
                .date(LocalDateTime.now().toString())
@@ -143,6 +166,7 @@ public class LoggerService {
                .subject(LogInfoAggregator.getUserInfo())
                .object(objectString)
                .path(LogInfoAggregator.getUrlPath()).build();
+
    }
 
 

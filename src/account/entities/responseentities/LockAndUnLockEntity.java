@@ -15,7 +15,7 @@ import lombok.Setter;
 public class LockAndUnLockEntity {
 
     private String user;
-    private Operations operations;
+    private Operations operation;
 
     public enum Operations {
         LOCK, UNLOCK

@@ -25,11 +25,11 @@ public class LoggerEntity {
 
     private LoggingActions action;
 
-    public String subject;
+    private String subject;
 
-    public String object;
+    private String object;
 
-    public String path;
+    private String path;
 
     private LoggerEntity(Builder builder) {
         this.date = builder.date;
