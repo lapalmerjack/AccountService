@@ -1,11 +1,14 @@
 package account.security;
 
 import account.entities.User;
+import account.logging.LogInfoAggregator;
+import account.logging.LoggingActions;
 import account.repositories.UserRepository;
 
 import account.security.customsecurityconfig.CustomAccessDeniedHandler;
 import account.security.customsecurityconfig.UserDetailsImpl;
 import account.security.filters.ExtractRequestInfoFilter;
+import account.services.LoggerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,7 @@ public class SecurityConfig {
     private UserRepository userRepository;
 
     @Autowired
+    private LoggerService loggerService;
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestAuthEntryPoint.class);
@@ -108,8 +112,7 @@ public class SecurityConfig {
             LOGGER.info("User found {}", databaseUser.getLastname());
 
             if (!databaseUser.getIsAccountNotLocked()) {
-                LOGGER.error("user is locked: {}", databaseUser.getEmail());
-                LOGGER.error("user locked? : {}", databaseUser.getIsAccountNotLocked());
+
                 throw new LockedException("User account is locked");
             }
 

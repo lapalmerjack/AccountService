@@ -31,8 +31,6 @@ public class AuthenticationListeners  {
 
     private final UserService userService;
 
-    @Autowired
-    HttpServletRequest request;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationListeners.class);
 
@@ -49,13 +47,16 @@ public class AuthenticationListeners  {
         UserDetails principal = (UserDetails) event.getAuthentication().getPrincipal();
         LogInfoAggregator.setUserNameForLogging(principal.getUsername());
         LOGGER.info("Success with principal {}", principal.getUsername());
+
     }
 
 
     @EventListener
-    public void failureOnLogin(AbstractAuthenticationFailureEvent event) throws ServletException, IOException {
+    public void failureOnLogin(AbstractAuthenticationFailureEvent event)  {
 
         System.out.println("FAILURE TO LOG IN BRO PRINCIPAL " + event.getAuthentication().getPrincipal());
+
+      
 
         String email = event.getAuthentication().getPrincipal().toString();
         LogInfoAggregator.setUserNameForLogging(email);
@@ -89,12 +90,14 @@ public class AuthenticationListeners  {
     }
     public void configureCheckAttemptsAndLock(User user) {
         System.out.println(user.getLoginAttempts() + " THESE ARE THE ATTEMPTS");
+
         if (user.getLoginAttempts() < UserService.MAX_FAILED_ATTEMPTS) {
             System.out.println("UPPING FAILED ATTEMPT FOR " + user.getEmail());
             userService.increaseFailedLoginAttempts(user);
 
         } else {
             System.out.println("LOCKING THIS CHUMP " + user.getEmail());
+
             userService.lockUser(user);
             LogInfoAggregator.setObjectInfoForLogging(user.getEmail());
             loggerService.processLogEvents(LoggingActions.BRUTE_FORCE);

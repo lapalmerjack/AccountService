@@ -95,15 +95,20 @@ public class AdminService {
             switch (lockAndUnLockEntity.getOperation()) {
             case LOCK -> {
                 System.out.println("Logger info " + LogInfoAggregator.getUserInfo() + user.getEmail());
+
                 if (LogInfoAggregator.getUserInfo().equals(user.getEmail())) {
                     LOGGER.error("Locking admin is not allowed!");
                     throw new CanNotLockAdministratorException();
                 }
-                user.setIsAccountNotLocked(true);
+
+                user.setIsAccountNotLocked(false);
             }
 
-            case UNLOCK ->  user.setIsAccountNotLocked(false);
-        };
+            case UNLOCK -> {
+                user.setIsAccountNotLocked(true);
+                user.setLoginAttempts(0);
+            }
+        }
             userRepository.save(user);
 
         return user;
